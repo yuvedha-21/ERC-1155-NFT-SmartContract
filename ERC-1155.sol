@@ -24,6 +24,8 @@ contract Token_1155 is ERC1155, Ownable, Pausable, ERC1155Supply {
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
     }
+    
+    //to switch between pause and unpause the NFT 
 
     function pause() public onlyOwner {
         _pause();
@@ -32,31 +34,43 @@ contract Token_1155 is ERC1155, Ownable, Pausable, ERC1155Supply {
     function unpause() public onlyOwner {
         _unpause();
     }
+    
 //to transfer balance to contract owner - (only owner modifier)
+
 function withdraw(address _addr)external onlyOwner{
         uint256 balance=address(this).balance;
         payable(_addr).transfer(balance);
     }
+
+// Addresses in the allowList let them mint NFT for lower prince than the public minting
 
 function setAllowList(address[] calldata addresses)external onlyOwner{
     for(uint256 i=0;i<addresses.length;i++){
         allowListpool[addresses[i]]=true;
     }
 }
+
+//this to change the state whether people can start minting or not, applicable for both public minting and allowList
+
 function editMintWindow(bool _PublicMintOpen,bool _allowListMintOpen)external onlyOwner{
         PublicMintOpen=_PublicMintOpen;
         allowListMintOpen=_allowListMintOpen;
     }
+    
+    //return the number of NFT hold  by the given addresses
 
 function checkBalance(address _addr)view public returns(uint256){
     return purchasesPerWallet[_addr];
 }
+
+//this function let people mint NFT for low price under certain contions
+
 function allowListMint(uint256 id,uint256 amount) public payable{
 
         require(allowListMintOpen,"AllowList Mint is closed ");
         require(allowListpool[msg.sender],"You can only mint in public mint");
         require(id<2,"Sorry , you tried minting the NFT which doesn't exists");
-      require(msg.value== allowListPrice*amount,"Not enough money sent");
+        require(msg.value== allowListPrice*amount,"Not enough money sent");
 
    mint(id,amount);
 
@@ -67,7 +81,9 @@ function uri(uint256 _id)  public view virtual override returns(string memory){
     return string(abi.encodePacked(super.uri(_id),Strings.toString(_id),".json"));
 
 }
-//made a supply track and payable option relevent to no of NFT buying
+
+//funtion for people to mint at normal price
+
 function PublicMint( uint256 id, uint256 amount)
         public payable
         
